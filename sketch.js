@@ -3,7 +3,7 @@
 @date 2021-10-16
 
 Coding plan:
-    EasyCam so that I can actually work with spheres
+    EasyCam so that I can actually work with spheres. Bugs: no reference!
     Convert into WEBGL and draw axes
     HUD for X, Y, and Z axes with Blender view
     Explain 3D polar coordinates at the top of the program (need more knowledge)
@@ -21,10 +21,12 @@ function preload() {
 }
 
 function setup() {
-    createCanvas(640, 360)
+    createCanvas(640, 360, WEBGL)
     colorMode(HSB, 360, 100, 100, 100)
+    new Dw.EasyCam(this._renderer, {distance:500});
 }
 
 function draw() {
     background(209, 80, 30)
+    sphere(100)
 }
