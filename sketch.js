@@ -17,6 +17,12 @@ Coding plan:
 let font
 const DARK_BRIGHTNESS = 60
 const LIGHT_BRIGHTNESS = 100
+const DISTANCE = 4000
+
+const SPHERE_DETAIL = 40
+let globe
+let r = 100
+
 
 function drawAxes() {
     strokeWeight(2)
@@ -54,12 +60,69 @@ function setup() {
 
 function draw() {
     background(209, 80, 30)
+
+    generateGlobeCoordinates()
+
+
     noFill()
     // turn this to 0.01 for a scary spiderweb globe effect!
-    strokeWeight(0.1)
-    // you need 100 brightness or else the spiderweb won't be visible
+    strokeWeight(1)
+    // you need 100 brightness or else the spiderweb won't be visible enough
     stroke(0, 0, 50)
-    sphere(100)
+    // sphere(100)
 
     drawAxes()
+}
+
+function generateGlobeCoordinates() {
+    /*
+        we can trick the computer into thinking it's dealing with just 1D
+        arrays when it's actually only doing 2D ones by stuffing an array into
+        only each index. Also, JavaScript does not support initialized 2D
+        arrays, which Zz looked into for me.
+     */
+    globe = Array(SPHERE_DETAIL + 1)
+    for (let i = 0; i < globe.length; i++) {
+        globe[i] = Array(SPHERE_DETAIL + 1)
+    }
+
+    strokeWeight(1)
+    stroke(0, 0, 60)
+    // fill(0, 0, 100)
+    // beginShape()
+    let theta, phi, x, y, z
+    // I'll think about consolidating the for loops later
+    for (let i = 0; i <= globe.length; i++) {
+        // change this to 0, TAU for a meridian view
+        theta = map(i, 0, globe.length, 0, PI)
+        for (let j = 0; j <= globe[0].length; j++) {
+            /*
+                we're converting from (x, y, z) coordinates to spherical
+                coordinates, or (r, θ, φ) coordinates. I did a proof of it!
+                For each latitude, we circle around the entire globe. To avoid
+                overlap we can only go through the latitude at π radians and
+                the longitude τ radians. (τ = 2π even though stands for torque)
+             */
+
+            /*
+                instead of the standard (x, y, z) coordinates, we're working in
+                spherical coordinates or (r, θ, φ) coordinate space. I have a
+                proof of this conversion. r is just the radius of our sphere.
+                θ is the clockwise angle from the positive x-axis onto the xy
+                plane, while φ is the clockwise angle from the positive z-axis
+                onto our location vector (x, y, z).
+             */
+
+            // change this to 0, PI for a meridian view
+            phi = map(j, 0, globe[0].length, -PI, PI)
+
+            // I proved the values below using trigonometry and 3D coordinates
+            x = r * cos(theta) * sin(phi)
+            y = r * sin(theta) * sin(phi)
+            z = r * cos(phi)
+
+            point(x, y, z)
+        }
+    }
+    // endShape()
 }
