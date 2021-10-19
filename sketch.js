@@ -65,6 +65,7 @@ function draw() {
 
     createGlobe()
     populateGlobe()
+    showGlobe()
 
     noFill()
     // turn this to 0.01 for a scary spiderweb globe effect!
@@ -76,6 +77,7 @@ function draw() {
     drawAxes()
 }
 
+// makes the globe a 2D array
 function createGlobe() {
     /*
         we can trick the computer into thinking it's dealing with just 1D
@@ -89,6 +91,7 @@ function createGlobe() {
     }
 }
 
+// fills the globe with points
 function populateGlobe() {
     strokeWeight(0.5)
     stroke(0, 0, 60)
@@ -125,6 +128,20 @@ function populateGlobe() {
             z = r * cos(φ)
 
             globe[i][j] = new p5.Vector(x, y, z)
+        }
+    }
+}
+
+// shows all the points in the globe
+function showGlobe() {
+    let v
+    stroke("lightgray")
+    strokeWeight(1)
+    for (let i = 0; i < globe.length; i++) {
+        for (let j = 0; j < globe[0].length; j++) {
+            // the point we're drawing
+            v = globe[i][j]
+            point(v.x, v.y, v.z)
         }
     }
 }
