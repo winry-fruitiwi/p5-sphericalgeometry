@@ -1,3 +1,5 @@
+// noinspection NonAsciiCharacters
+
 /*
 @author Winry
 @date 2021-10-16
@@ -55,14 +57,14 @@ function preload() {
 function setup() {
     createCanvas(640, 360, WEBGL)
     colorMode(HSB, 360, 100, 100, 100)
-    new Dw.EasyCam(this._renderer, {distance:500});
+    new Dw.EasyCam(this._renderer, {distance:500})
 }
 
 function draw() {
     background(209, 80, 30)
 
-    generateGlobeCoordinates()
-
+    createGlobe()
+    populateGlobe()
 
     noFill()
     // turn this to 0.01 for a scary spiderweb globe effect!
@@ -74,7 +76,7 @@ function draw() {
     drawAxes()
 }
 
-function generateGlobeCoordinates() {
+function createGlobe() {
     /*
         we can trick the computer into thinking it's dealing with just 1D
         arrays when it's actually only doing 2D ones by stuffing an array into
@@ -85,17 +87,18 @@ function generateGlobeCoordinates() {
     for (let i = 0; i < globe.length; i++) {
         globe[i] = Array(SPHERE_DETAIL + 1)
     }
+}
 
-    strokeWeight(1)
+function populateGlobe() {
+    strokeWeight(0.5)
     stroke(0, 0, 60)
     // fill(0, 0, 100)
-    // beginShape()
-    let theta, phi, x, y, z
+    let θ, φ, x, y, z
     // I'll think about consolidating the for loops later
-    for (let i = 0; i <= globe.length; i++) {
+    for (let i = 0; i < globe.length; i++) {
         // change this to 0, TAU for a meridian view
-        theta = map(i, 0, globe.length, 0, PI)
-        for (let j = 0; j <= globe[0].length; j++) {
+        θ = map(i, 0, globe.length - 1, 0, PI)
+        for (let j = 0; j < globe[0].length; j++) {
             /*
                 we're converting from (x, y, z) coordinates to spherical
                 coordinates, or (r, θ, φ) coordinates. I did a proof of it!
@@ -114,15 +117,14 @@ function generateGlobeCoordinates() {
              */
 
             // change this to 0, PI for a meridian view
-            phi = map(j, 0, globe[0].length, -PI, PI)
+            φ = map(j, 0, globe[0].length - 1, -PI, PI)
 
             // I proved the values below using trigonometry and 3D coordinates
-            x = r * cos(theta) * sin(phi)
-            y = r * sin(theta) * sin(phi)
-            z = r * cos(phi)
+            x = r * sin(φ) * cos(θ)
+            y = r * sin(φ) * sin(θ)
+            z = r * cos(φ)
 
-            point(x, y, z)
+            globe[i][j] = new p5.Vector(x, y, z)
         }
     }
-    // endShape()
 }
