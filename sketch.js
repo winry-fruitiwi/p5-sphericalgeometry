@@ -21,9 +21,11 @@ const DARK_BRIGHTNESS = 60
 const LIGHT_BRIGHTNESS = 100
 const DISTANCE = 4000
 
-const SPHERE_DETAIL = 40
+const SPHERE_DETAIL = 16
 let globe
 let r = 100
+let pyramid_i = 6
+let pyramid_j = 6
 
 
 function drawAxes() {
@@ -57,7 +59,7 @@ function preload() {
 function setup() {
     createCanvas(640, 360, WEBGL)
     colorMode(HSB, 360, 100, 100, 100)
-    new Dw.EasyCam(this._renderer, {distance:500})
+    new Dw.EasyCam(this._renderer, {distance:300})
 }
 
 function draw() {
@@ -90,6 +92,8 @@ function createGlobe() {
         globe[i] = Array(SPHERE_DETAIL + 1)
     }
 }
+
+
 
 // fills the globe with points
 function populateGlobe() {
@@ -134,14 +138,47 @@ function populateGlobe() {
 
 // shows all the points in the globe
 function showGlobe() {
-    let v
-    stroke("lightgray")
-    strokeWeight(1)
-    for (let i = 0; i < globe.length; i++) {
+    let pyramidPoints, v1, v2
+    stroke(0, 0, 50)
+    strokeWeight(0.5)
+    fill(0, 0, 60)
+    noFill()
+    beginShape(TRIANGLE_STRIP)
+
+    for (let i = 0; i < globe.length - 1; i++) {
         for (let j = 0; j < globe[0].length; j++) {
-            // the point we're drawing
-            v = globe[i][j]
-            point(v.x, v.y, v.z)
+            // // the point we're drawing (code for quadrilaterals)
+            v1 = globe[i][j]
+            v2 = globe[i + 1][j]
+            vertex(v1.x, v1.y, v1.z)
+            vertex(v2.x, v2.y, v1.z)
         }
     }
+    endShape()
+
+    // code for pyramid
+    pyramidPoints = [
+        globe[pyramid_i][pyramid_j],
+        globe[pyramid_i][pyramid_j + 1],
+        globe[pyramid_i + 1][pyramid_j+1],
+        globe[pyramid_i + 1][pyramid_j],
+        globe[pyramid_i][pyramid_j]
+    ]
+
+    stroke(0, 0, 100)
+    fill(0, 0, 100, 10)
+    beginShape()
+
+    for (let pyramidPoint of pyramidPoints) {
+        vertex(pyramidPoint.x, pyramidPoint.y, pyramidPoint.z)
+    }
+
+    endShape()
+    beginShape()
+    fill(0, 0, 100, 60)
+    for (let pyramidPoint of pyramidPoints) {
+        line(0, 0, 0, pyramidPoint.x, pyramidPoint.y, pyramidPoint.z)
+    }
+
+    endShape()
 }
