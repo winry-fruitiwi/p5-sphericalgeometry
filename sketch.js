@@ -5,15 +5,16 @@
 @date 2021-10-16
 
 Coding plan:
-    EasyCam so that I can actually work with spheres. Bugs: no reference!
-    Convert into WEBGL and draw axes
-    HUD for X, Y, and Z axes with Blender view
-    Explain 3D polar coordinates at the top of the program (need more knowledge)
-    Draw points with X and Y, like latitude and longitude
-    Create 2D array and stuff points into it, then show every point
-    Try to make the triangle strips
-    Make a rainbow! Also add code for random points, if wanted. Makes sound!
-    Maybe try a quadrilateral approach? That would satisfy Adam.
+.   EasyCam so that I can actually work with spheres. Bugs: no reference!
+.   Convert into WEBGL and draw axes
+    HUD for X, Y, and Z axes with Blender view (forgot about this, add it in)
+.   Explain 3D polar coordinates at the top of the program (need more knowledge)
+.   Draw points with X and Y, like latitude and longitude
+.   Create 2D array and stuff points into it, then show every point
+.   Try to make the triangle strips
+.   Create pyramid!
+
+
 */
 
 let font
@@ -24,6 +25,7 @@ const DISTANCE = 4000
 const SPHERE_DETAIL = 16
 let globe
 let r = 100
+let scaledR
 let pyramid_i = 6
 let pyramid_j = 6
 
@@ -138,29 +140,31 @@ function populateGlobe() {
 
 // shows all the points in the globe
 function showGlobe() {
-    let pyramidPoints, v1, v2
-    stroke(0, 0, 50)
-    strokeWeight(0.5)
-    fill(0, 0, 60)
-    noFill()
-    beginShape(TRIANGLE_STRIP)
+    let pyramidPoints, v1, v2, v3, v4
+    stroke(0, 0, 100)
+    strokeWeight(1)
+    fill(210, 100, 10)
 
     for (let i = 0; i < globe.length - 1; i++) {
-        for (let j = 0; j < globe[0].length; j++) {
+        for (let j = 0; j < globe[0].length-1; j++) {
             // // the point we're drawing (code for quadrilaterals)
+            scaledR = r + 10 * sin(frameCount / 30)
             v1 = globe[i][j]
             v2 = globe[i + 1][j]
-            vertex(v1.x, v1.y, v1.z)
-            vertex(v2.x, v2.y, v1.z)
+            v3 = globe[i][j + 1]
+            v4 = globe[i + 1][j + 1]
+            point(v1.x, v1.y, v1.z)
+            point(v2.x, v2.y, v2.z)
+            point(v3.x, v3.y, v3.z)
+            point(v4.x, v4.y, v4.z)
         }
     }
-    endShape()
 
     // code for pyramid
     pyramidPoints = [
         globe[pyramid_i][pyramid_j],
         globe[pyramid_i][pyramid_j + 1],
-        globe[pyramid_i + 1][pyramid_j+1],
+        globe[pyramid_i + 1][pyramid_j + 1],
         globe[pyramid_i + 1][pyramid_j],
         globe[pyramid_i][pyramid_j]
     ]
@@ -177,7 +181,8 @@ function showGlobe() {
     beginShape()
     fill(0, 0, 100, 60)
     for (let pyramidPoint of pyramidPoints) {
-        line(0, 0, 0, pyramidPoint.x, pyramidPoint.y, pyramidPoint.z)
+        vertex(pyramidPoint.x, pyramidPoint.y, pyramidPoint.z)
+        vertex(0, 0, 0)
     }
 
     endShape()
