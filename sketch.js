@@ -15,19 +15,20 @@ Coding plan:
 .   Create pyramid!
 
 
+
 */
 
 let font
+
+// variables for the drawAxes function
 const DARK_BRIGHTNESS = 60
 const LIGHT_BRIGHTNESS = 100
-const DISTANCE = 4000
+const DISTANCE = 40000
 
+// variables used for the globe functions
 const SPHERE_DETAIL = 16
 let globe
 let r = 100
-let scaledR
-let pyramid_i = 6
-let pyramid_j = 6
 
 
 function drawAxes() {
@@ -67,7 +68,7 @@ function setup() {
 function draw() {
     background(209, 80, 30)
 
-    createGlobe()
+    initializeGlobeArray()
     populateGlobe()
     showGlobe()
 
@@ -82,7 +83,7 @@ function draw() {
 }
 
 // makes the globe a 2D array
-function createGlobe() {
+function initializeGlobeArray() {
     /*
         we can trick the computer into thinking it's dealing with just 1D
         arrays when it's actually only doing 2D ones by stuffing an array into
@@ -107,7 +108,7 @@ function populateGlobe() {
     for (let i = 0; i < globe.length; i++) {
         // change this to 0, TAU for a meridian view
         θ = map(i, 0, globe.length - 1, 0, PI)
-        for (let j = 0; j < globe[0].length; j++) {
+        for (let j = 0; j < globe[i].length; j++) {
             /*
                 we're converting from (x, y, z) coordinates to spherical
                 coordinates, or (r, θ, φ) coordinates. I did a proof of it!
@@ -126,13 +127,12 @@ function populateGlobe() {
              */
 
             // change this to 0, PI for a meridian view
-            φ = map(j, 0, globe[0].length - 1, -PI, PI)
+            φ = map(j, 0, globe[i].length - 1, 0, PI)
 
             // I proved the values below using trigonometry and 3D coordinates
             x = r * sin(φ) * cos(θ)
             y = r * sin(φ) * sin(θ)
             z = r * cos(φ)
-
             globe[i][j] = new p5.Vector(x, y, z)
         }
     }
@@ -140,50 +140,63 @@ function populateGlobe() {
 
 // shows all the points in the globe
 function showGlobe() {
-    let pyramidPoints, v1, v2, v3, v4
+    let pyramidPoints
     stroke(0, 0, 100)
     strokeWeight(1)
     fill(210, 100, 10)
 
-    for (let i = 0; i < globe.length - 1; i++) {
-        for (let j = 0; j < globe[0].length-1; j++) {
-            // // the point we're drawing (code for quadrilaterals)
-            scaledR = r + 10 * sin(frameCount / 30)
-            v1 = globe[i][j]
-            v2 = globe[i + 1][j]
-            v3 = globe[i][j + 1]
-            v4 = globe[i + 1][j + 1]
-            point(v1.x, v1.y, v1.z)
-            point(v2.x, v2.y, v2.z)
-            point(v3.x, v3.y, v3.z)
-            point(v4.x, v4.y, v4.z)
-        }
-    }
+    // the general sine formula is asin(b(x+c)) + d. We want to make the
+    // amplitude (a) bigger and then we want the period to be greater,
+    // apparently. I think it's because it's actually the frequency over two pi.
+    let oscillationOffset = (r + 10 * sin(frameCount / 30)) / r
 
     // code for pyramid
-    pyramidPoints = [
-        globe[pyramid_i][pyramid_j],
-        globe[pyramid_i][pyramid_j + 1],
-        globe[pyramid_i + 1][pyramid_j + 1],
-        globe[pyramid_i + 1][pyramid_j],
-        globe[pyramid_i][pyramid_j]
-    ]
+    for (let i = 0; i < globe.length - 1; i++) {
+        for (let j = 0; j < globe[0].length - 1; j++) {
+            // // the point we're drawing (code for quadrilaterals)
+            // scaledR = r + 10 * sin(frameCount / 30)
+            // v1 = globe[i][j]
+            // v2 = globe[i + 1][j]
+            // v3 = globe[i][j + 1]
+            // v4 = globe[i + 1][j + 1]
+            // point(v1.x, v1.y, v1.z)
+            // point(v2.x, v2.y, v2.z)
+            // point(v3.x, v3.y, v3.z)
+            // point(v4.x, v4.y, v4.z)
+            pyramidPoints = [
+                globe[i][j],
+                globe[i + 1][j],
+                globe[i + 1][j + 1],
+                globe[i][j + 1]
+            ]
 
-    stroke(0, 0, 100)
-    fill(0, 0, 100, 10)
-    beginShape()
+            noStroke()
+            fill(210, 100, 20)
 
-    for (let pyramidPoint of pyramidPoints) {
-        vertex(pyramidPoint.x, pyramidPoint.y, pyramidPoint.z)
+            beginShape()
+            // start on the pyramid base quad
+            for (let p of pyramidPoints) {
+                vertex(
+                    p.x * oscillationOffset,
+                    p.y * oscillationOffset,
+                    p.z * oscillationOffset
+                )
+            }
+            endShape()
+
+            beginShape(TRIANGLE_STRIP)
+            noStroke()
+            fill(180, 100, 100)
+            for (let p of pyramidPoints) {
+                vertex(
+                    p.x * oscillationOffset,
+                    p.y * oscillationOffset,
+                    p.z * oscillationOffset
+                )
+                vertex(0, 0, 0)
+            }
+            endShape()
+        }
     }
-
-    endShape()
-    beginShape()
-    fill(0, 0, 100, 60)
-    for (let pyramidPoint of pyramidPoints) {
-        vertex(pyramidPoint.x, pyramidPoint.y, pyramidPoint.z)
-        vertex(0, 0, 0)
-    }
-
-    endShape()
+    
 }
