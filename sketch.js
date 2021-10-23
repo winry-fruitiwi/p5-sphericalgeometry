@@ -74,7 +74,7 @@ function draw() {
 
     noFill()
     // turn this to 0.01 for a scary spiderweb globe effect!
-    strokeWeight(1)
+    strokeWeight(0.01)
     // you need 100 brightness or else the spiderweb won't be visible enough
     stroke(0, 0, 50)
     // sphere(100)
@@ -100,7 +100,7 @@ function initializeGlobeArray() {
 
 // fills the globe with points
 function populateGlobe() {
-    strokeWeight(0.5)
+    strokeWeight(0.01)
     stroke(0, 0, 60)
     // fill(0, 0, 100)
     let θ, φ, x, y, z
@@ -140,15 +140,14 @@ function populateGlobe() {
 
 // shows all the points in the globe
 function showGlobe() {
-    let pyramidPoints
+    let pyramidPoints, distance
     stroke(0, 0, 100)
-    strokeWeight(1)
-    fill(210, 100, 10)
+    strokeWeight(0.1)
+    // fill(210, 100, 10)
 
     // the general sine formula is asin(b(x+c)) + d. We want to make the
     // amplitude (a) bigger and then we want the period to be greater,
     // apparently. I think it's because it's actually the frequency over two pi.
-    let oscillationOffset = (r + 10 * sin(frameCount / 30)) / r
 
     // code for pyramid
     for (let i = 0; i < globe.length - 1; i++) {
@@ -170,33 +169,42 @@ function showGlobe() {
                 globe[i][j + 1]
             ]
 
-            noStroke()
-            fill(210, 100, 20)
-
+            // noStroke()
+            // fill(210, 100, 20)
+/*
             beginShape()
             // start on the pyramid base quad
             for (let p of pyramidPoints) {
-                vertex(
-                    p.x * oscillationOffset,
-                    p.y * oscillationOffset,
-                    p.z * oscillationOffset
-                )
+                scaleVertex(p)
             }
-            endShape()
+            endShape()*/
 
             beginShape(TRIANGLE_STRIP)
-            noStroke()
-            fill(180, 100, 100)
+            // noStroke()
+            // fill(180, 100, 100)
             for (let p of pyramidPoints) {
-                vertex(
-                    p.x * oscillationOffset,
-                    p.y * oscillationOffset,
-                    p.z * oscillationOffset
-                )
+                scaleVertex(p)
                 vertex(0, 0, 0)
             }
             endShape()
         }
     }
-    
+
+}
+
+// draws a vertex at a certain point and oscillates it if needed
+function scaleVertex(p) {
+    // are we close enough to begin oscillating?
+    let distance = sqrt(p.x**2 + p.z**2)
+    let oscillationOffset = (r + 10 * sin(distance /10 + frameCount / 30)) / r
+    // let oscillationOffset = 1.05
+    if (distance < 80) {
+        vertex(
+            p.x * oscillationOffset,
+            p.y * oscillationOffset,
+            p.z * oscillationOffset
+        )
+    } else {
+        vertex(p.x, p.y, p.z)
+    }
 }
