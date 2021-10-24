@@ -13,7 +13,10 @@ Coding plan:
 .   Create 2D array and stuff points into it, then show every point
 .   Try to make the triangle strips
 .   Create pyramid!
-
+    Create oscillations of pyramids
+    Only draw pyramid faces within drawing radius
+        Add background to make up for lack of extra pyramid faces
+    Lighting
 
 
 */
@@ -67,27 +70,20 @@ function setup() {
 
 function draw() {
     background(209, 80, 30)
+    drawAxes()
 
     initializeGlobeArray()
     populateGlobe()
     showGlobe()
-
-    noFill()
-    // turn this to 0.01 for a scary spiderweb globe effect!
-    strokeWeight(0.01)
-    // you need 100 brightness or else the spiderweb won't be visible enough
-    stroke(0, 0, 50)
-    // sphere(100)
-
-    drawAxes()
+    lights()
 }
 
 // makes the globe a 2D array
 function initializeGlobeArray() {
     /*
         we can trick the computer into thinking it's dealing with just 1D
-        arrays when it's actually only doing 2D ones by stuffing an array into
-        only each index. Also, JavaScript does not support initialized 2D
+        arrays when it's actually handling 2D ones by stuffing an array into
+        each index. Also, JavaScript does not support initialized 2D
         arrays, which Zz looked into for me.
      */
     globe = Array(SPHERE_DETAIL + 1)
@@ -102,7 +98,6 @@ function initializeGlobeArray() {
 function populateGlobe() {
     strokeWeight(0.01)
     stroke(0, 0, 60)
-    // fill(0, 0, 100)
     let θ, φ, x, y, z
     // I'll think about consolidating the for loops later
     for (let i = 0; i < globe.length; i++) {
@@ -141,27 +136,9 @@ function populateGlobe() {
 // shows all the points in the globe
 function showGlobe() {
     let pyramidPoints, distance
-    stroke(0, 0, 100)
-    strokeWeight(0.1)
-    // fill(210, 100, 10)
-
-    // the general sine formula is asin(b(x+c)) + d. We want to make the
-    // amplitude (a) bigger and then we want the period to be greater,
-    // apparently. I think it's because it's actually the frequency over two pi.
-
     // code for pyramid
     for (let i = 0; i < globe.length - 1; i++) {
         for (let j = 0; j < globe[0].length - 1; j++) {
-            // // the point we're drawing (code for quadrilaterals)
-            // scaledR = r + 10 * sin(frameCount / 30)
-            // v1 = globe[i][j]
-            // v2 = globe[i + 1][j]
-            // v3 = globe[i][j + 1]
-            // v4 = globe[i + 1][j + 1]
-            // point(v1.x, v1.y, v1.z)
-            // point(v2.x, v2.y, v2.z)
-            // point(v3.x, v3.y, v3.z)
-            // point(v4.x, v4.y, v4.z)
             pyramidPoints = [
                 globe[i][j],
                 globe[i + 1][j],
@@ -169,21 +146,57 @@ function showGlobe() {
                 globe[i][j + 1]
             ]
 
-            // noStroke()
-            // fill(210, 100, 20)
-/*
+            noStroke()
+            fill(210, 100, 20)
+
+            // Instead of finding the distance from each individual point, we
+            // get the average of each point.
+            let avg = new p5.Vector(0, 0, 0)
+            for (let p of pyramidPoints) {
+                avg.add(p)
+            }
+            avg.div(4)
+
             beginShape()
             // start on the pyramid base quad
             for (let p of pyramidPoints) {
-                scaleVertex(p)
+                // we need the distance from the y-axis.
+                distance = sqrt(avg.x**2 + avg.z**2)
+                // the general sine formula is asin(b(x+c))+d. We want the
+                // amplitude, phase shift, and period to be different.
+                let oscillationOffset = (r+10*sin(distance/10+frameCount/30))/r
+                // if we're close enough to the y-axis, scale the vertex.
+                // Otherwise, just draw the empty sphere.
+                if (distance < 60) {
+                    vertex(
+                        p.x * oscillationOffset,
+                        p.y * oscillationOffset,
+                        p.z * oscillationOffset
+                    )
+                } else {
+                    vertex(p.x, p.y, p.z)
+                }
             }
-            endShape()*/
+            endShape()
 
+            // Now we can draw the blue pyramids.
             beginShape(TRIANGLE_STRIP)
-            // noStroke()
-            // fill(180, 100, 100)
+            noStroke()
+            fill(180, 100, 100)
             for (let p of pyramidPoints) {
-                scaleVertex(p)
+                // we follow the steps we took on the pyramid base quad.
+                distance = sqrt(avg.x**2 + avg.z**2)
+                let oscillationOffset = (r+5*sin(distance/10+frameCount/30))/r
+                // let oscillationOffset = 1.05
+                if (distance < 60) {
+                    vertex(
+                        p.x * oscillationOffset,
+                        p.y * oscillationOffset,
+                        p.z * oscillationOffset
+                    )
+                } else {
+                    vertex(p.x, p.y, p.z)
+                }
                 vertex(0, 0, 0)
             }
             endShape()
@@ -194,17 +207,5 @@ function showGlobe() {
 
 // draws a vertex at a certain point and oscillates it if needed
 function scaleVertex(p) {
-    // are we close enough to begin oscillating?
-    let distance = sqrt(p.x**2 + p.z**2)
-    let oscillationOffset = (r + 10 * sin(distance /10 + frameCount / 30)) / r
-    // let oscillationOffset = 1.05
-    if (distance < 80) {
-        vertex(
-            p.x * oscillationOffset,
-            p.y * oscillationOffset,
-            p.z * oscillationOffset
-        )
-    } else {
-        vertex(p.x, p.y, p.z)
-    }
+
 }
