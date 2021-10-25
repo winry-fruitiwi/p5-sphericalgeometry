@@ -17,8 +17,6 @@ Coding plan:
     Only draw pyramid faces within drawing radius
         Add background to make up for lack of extra pyramid faces
     Lighting
-
-
 */
 
 let font
@@ -70,12 +68,12 @@ function setup() {
 
 function draw() {
     background(209, 80, 30)
-    drawAxes()
+    // directionalLight(0, 0, 60, new p5.Vector(100, 100, 100))
 
     initializeGlobeArray()
     populateGlobe()
     showGlobe()
-    lights()
+    // drawAxes()
 }
 
 // makes the globe a 2D array
@@ -135,6 +133,8 @@ function populateGlobe() {
 
 // shows all the points in the globe
 function showGlobe() {
+    push()
+    rotateX(PI/2)
     let pyramidPoints, distance
     // code for pyramid
     for (let i = 0; i < globe.length - 1; i++) {
@@ -143,11 +143,12 @@ function showGlobe() {
                 globe[i][j],
                 globe[i + 1][j],
                 globe[i + 1][j + 1],
-                globe[i][j + 1]
+                globe[i][j + 1],
+                globe[i][j]
             ]
 
             noStroke()
-            fill(210, 100, 20)
+            fill(210, 100, 15)
 
             // Instead of finding the distance from each individual point, we
             // get the average of each point.
@@ -157,17 +158,20 @@ function showGlobe() {
             }
             avg.div(4)
 
+
+            distance = sqrt(avg.x ** 2 + avg.z ** 2)
+            let oscillationOffset = (r+5*sin(distance / 10 + frameCount / 30)) / r
+
+
             beginShape()
             // start on the pyramid base quad
             for (let p of pyramidPoints) {
                 // we need the distance from the y-axis.
-                distance = sqrt(avg.x**2 + avg.z**2)
                 // the general sine formula is asin(b(x+c))+d. We want the
                 // amplitude, phase shift, and period to be different.
-                let oscillationOffset = (r+10*sin(distance/10+frameCount/30))/r
                 // if we're close enough to the y-axis, scale the vertex.
-                // Otherwise, just draw the empty sphere.
-                if (distance < 60) {
+                // Otherwise, just create the vertex.
+                if (distance < 63) {
                     vertex(
                         p.x * oscillationOffset,
                         p.y * oscillationOffset,
@@ -180,32 +184,35 @@ function showGlobe() {
             endShape()
 
             // Now we can draw the blue pyramids.
-            beginShape(TRIANGLE_STRIP)
+
             noStroke()
             fill(180, 100, 100)
-            for (let p of pyramidPoints) {
-                // we follow the steps we took on the pyramid base quad.
-                distance = sqrt(avg.x**2 + avg.z**2)
-                let oscillationOffset = (r+5*sin(distance/10+frameCount/30))/r
-                // let oscillationOffset = 1.05
-                if (distance < 60) {
-                    vertex(
-                        p.x * oscillationOffset,
-                        p.y * oscillationOffset,
-                        p.z * oscillationOffset
-                    )
-                } else {
-                    vertex(p.x, p.y, p.z)
-                }
-                vertex(0, 0, 0)
+            if (distance < 63) {
+                beginShape(TRIANGLE_STRIP)
+                for (let p of pyramidPoints) {
+                    // we follow the steps we took on the pyramid base quad,
+                    // except we only draw if our distance is sufficient.
+                        vertex(
+                            p.x * oscillationOffset,
+                            p.y * oscillationOffset,
+                            p.z * oscillationOffset
+                        )
+                        vertex(0, 0, 0)
+                    }
+                endShape()
             }
-            endShape()
+
         }
     }
-
-}
-
-// draws a vertex at a certain point and oscillates it if needed
-function scaleVertex(p) {
-
+    push()
+    rotateX(PI/2)
+    circle(0, 0, r*2-1)
+    fill(0, 0, 100); noStroke()
+    torus(r, 10);
+    fill(210, 100, 20)
+    torus(r+10, 10)
+    translate(0, 0, 1)
+    circle(0, 0, r*2-1)
+    pop()
+    pop()
 }
