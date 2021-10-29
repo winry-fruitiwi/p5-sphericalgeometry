@@ -28,7 +28,7 @@ const DISTANCE = 40000
 
 // variables used for the globe functions
 const SPHERE_DETAIL = 16
-let globe
+let globe, cam, voice, p5amp
 let r = 100
 
 
@@ -58,17 +58,23 @@ function drawAxes() {
 
 function preload() {
     font = loadFont('fonts/Meiryo-01.ttf')
+    voice = loadSound('adam.mp3')
 }
 
 function setup() {
     createCanvas(640, 360, WEBGL)
     colorMode(HSB, 360, 100, 100, 100)
-    new Dw.EasyCam(this._renderer, {distance:300})
+    cam = new Dw.EasyCam(this._renderer, {distance:300})
+
+    // voice = new p5.AudioIn(); voice.start()
+    voice.play()
+    p5amp = new p5.Amplitude()
 }
 
 function draw() {
     background(209, 80, 30)
-    // directionalLight(0, 0, 60, new p5.Vector(100, 100, 100))
+    ambientLight(250);
+    directionalLight(0, 0, 10, .5, 1, 0); // z axis seems inverted
 
     initializeGlobeArray()
     populateGlobe()
@@ -162,6 +168,8 @@ function showGlobe() {
             distance = sqrt(avg.x ** 2 + avg.z ** 2)
             let oscillationOffset = (r+5*sin(distance / 10 + frameCount / 30)) / r
 
+            specularMaterial(210, 100, 22)
+            shininess(100)
 
             beginShape()
             // start on the pyramid base quad
@@ -185,8 +193,12 @@ function showGlobe() {
 
             // Now we can draw the blue pyramids.
 
+            let fromColor = color(185, 12, 98)
+            let toColor = color(184, 57, 95)
+            let c = lerpColor(fromColor, toColor, distance/r)
+
             noStroke()
-            fill(180, 100, 100)
+            fill(c)
             if (distance < 63) {
                 beginShape(TRIANGLE_STRIP)
                 for (let p of pyramidPoints) {
@@ -205,14 +217,27 @@ function showGlobe() {
         }
     }
     push()
+    bezierDetail(24)
     rotateX(PI/2)
     circle(0, 0, r*2-1)
+
     fill(0, 0, 100); noStroke()
-    torus(r, 10);
+
+    translate(0, 0, -5)
+    torus(r+1, 2, 100, 100)
+
+    translate(0, 0, 5)
     fill(210, 100, 20)
-    torus(r+10, 10)
+    torus(r+10, 10, 100, 100)
+
     translate(0, 0, 1)
     circle(0, 0, r*2-1)
     pop()
     pop()
+}
+
+function touchStarted() {
+    if (getAudioContext().state !== 'running') {
+        getAudioContext().resume().then(r => {});
+    }
 }
