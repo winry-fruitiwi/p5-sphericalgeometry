@@ -66,6 +66,9 @@ function setup() {
     colorMode(HSB, 360, 100, 100, 100)
     cam = new Dw.EasyCam(this._renderer, {distance:300})
 
+    initializeGlobeArray()
+    populateGlobe()
+
     // voice = new p5.AudioIn(); voice.start()
     voice.play()
     p5amp = new p5.Amplitude()
@@ -73,11 +76,9 @@ function setup() {
 
 function draw() {
     background(209, 80, 30)
-    ambientLight(250);
-    directionalLight(0, 0, 10, .5, 1, 0); // z axis seems inverted
+    ambientLight(250)
+    directionalLight(0, 0, 10, .5, 0, 1) // z axis seems inverted
 
-    initializeGlobeArray()
-    populateGlobe()
     showGlobe()
     // drawAxes()
 }
@@ -143,6 +144,8 @@ function showGlobe() {
     rotateX(PI/2)
     let pyramidPoints, distance
     // code for pyramid
+    let currentVoiceAmp
+    let lastVoiceAmp = 0
     for (let i = 0; i < globe.length - 1; i++) {
         for (let j = 0; j < globe[0].length - 1; j++) {
             pyramidPoints = [
@@ -164,11 +167,28 @@ function showGlobe() {
             }
             avg.div(4)
 
+            /*  average out the current voice amp with the previous value to
+    prevent large skips. similar to FFT.smooth()
+    TODO average out the last 10 values, maybe. use array pop0
+*/
 
+// currentVoiceAmp = (voice.getLevel() + lastVoiceAmp) / 2
+            currentVoiceAmp = (p5amp.getLevel() + lastVoiceAmp) / 2
+            lastVoiceAmp = currentVoiceAmp
+
+            /*  we want the voice amp to have the greatest effect in the center
+                and then drop off somewhat quickly
+            */
             distance = sqrt(avg.x ** 2 + avg.z ** 2)
-            let oscillationOffset = (r+5*sin(distance / 10 + frameCount / 30)) / r
+            currentVoiceAmp = 50 * map(currentVoiceAmp, 0, 0.25, 0, 1)
+                / (distance ** (1.9))
+
+            let oscillationOffset = (r + 5 * sin(distance / 10 + frameCount / 30)) / r
+
+            oscillationOffset -= currentVoiceAmp
 
             specularMaterial(210, 100, 22)
+            // fill(210, 100, 22)
             shininess(100)
 
             beginShape()
@@ -195,7 +215,7 @@ function showGlobe() {
 
             let fromColor = color(185, 12, 98)
             let toColor = color(184, 57, 95)
-            let c = lerpColor(fromColor, toColor, distance/r)
+            let c = lerpColor(fromColor, toColor, distance / r)
 
             noStroke()
             fill(c)
@@ -204,27 +224,26 @@ function showGlobe() {
                 for (let p of pyramidPoints) {
                     // we follow the steps we took on the pyramid base quad,
                     // except we only draw if our distance is sufficient.
-                        vertex(
-                            p.x * oscillationOffset,
-                            p.y * oscillationOffset,
-                            p.z * oscillationOffset
-                        )
-                        vertex(0, 0, 0)
-                    }
+                    vertex(
+                        p.x * oscillationOffset,
+                        p.y * oscillationOffset,
+                        p.z * oscillationOffset
+                    )
+                    vertex(0, 0, 0)
+                }
                 endShape()
             }
 
         }
     }
     push()
-    bezierDetail(24)
     rotateX(PI/2)
     circle(0, 0, r*2-1)
 
     fill(0, 0, 100); noStroke()
 
     translate(0, 0, -5)
-    torus(r+1, 2, 100, 100)
+    torus(r+1, 1, 100, 100)
 
     translate(0, 0, 5)
     fill(210, 100, 20)
