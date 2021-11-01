@@ -27,7 +27,7 @@ const LIGHT_BRIGHTNESS = 100
 const DISTANCE = 40000
 
 // variables used for the globe functions
-const SPHERE_DETAIL = 16
+const SPHERE_DETAIL = 32
 let globe, cam, voice, p5amp
 let r = 100
 
@@ -75,7 +75,7 @@ function setup() {
 }
 
 function draw() {
-    background(209, 80, 30)
+    background(209, 80, 40)
     ambientLight(250)
     directionalLight(0, 0, 10, .5, 0, 1) // z axis seems inverted
 
@@ -183,7 +183,7 @@ function showGlobe() {
             currentVoiceAmp = 50 * map(currentVoiceAmp, 0, 0.25, 0, 1)
                 / (distance ** (1.9))
 
-            let oscillationOffset = (r + 5 * sin(distance / 10 + frameCount / 30)) / r
+            let oscillationOffset = (r + 5 * sin(distance / 10 - frameCount / 30)) / r
 
             oscillationOffset -= currentVoiceAmp
 
@@ -199,7 +199,7 @@ function showGlobe() {
                 // amplitude, phase shift, and period to be different.
                 // if we're close enough to the y-axis, scale the vertex.
                 // Otherwise, just create the vertex.
-                if (distance < 63) {
+                if (distance < 68) {
                     vertex(
                         p.x * oscillationOffset,
                         p.y * oscillationOffset,
@@ -213,13 +213,13 @@ function showGlobe() {
 
             // Now we can draw the blue pyramids.
 
-            let fromColor = color(185, 12, 98)
+            let fromColor = color(185, 1, 98)
             let toColor = color(184, 57, 95)
             let c = lerpColor(fromColor, toColor, distance / r)
 
             noStroke()
             fill(c)
-            if (distance < 63) {
+            if (distance < 68) {
                 beginShape(TRIANGLE_STRIP)
                 for (let p of pyramidPoints) {
                     // we follow the steps we took on the pyramid base quad,
@@ -237,8 +237,10 @@ function showGlobe() {
         }
     }
     push()
+    curveDetail(30)
     rotateX(PI/2)
-    circle(0, 0, r*2-1)
+    fill(184, 57, 95)
+    circle(0, 0, r*2-10)
 
     fill(0, 0, 100); noStroke()
 
