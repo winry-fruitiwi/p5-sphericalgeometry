@@ -183,14 +183,18 @@ function showGlobe() {
             currentVoiceAmp = 50 * map(currentVoiceAmp, 0, 0.25, 0, 1)
                 / (distance ** (1.9))
 
-            let oscillationOffset = (r + 5 * sin(distance / 10 - frameCount / 30)) / r
+            let sine = sin(distance / 10 - frameCount / 30)
+
+            let oscillationOffset = (r + 2.5 * sine + 2.5) / r
 
             oscillationOffset -= currentVoiceAmp
 
             specularMaterial(210, 100, 22)
             // fill(210, 100, 22)
             shininess(100)
-
+            // scales the base radius so that the distance will render the
+            // same amount of blocks for a bigger pyramid
+            let PYRAMID_DRAW_RADIUS = 68/100*r
             beginShape()
             // start on the pyramid base quad
             for (let p of pyramidPoints) {
@@ -199,7 +203,7 @@ function showGlobe() {
                 // amplitude, phase shift, and period to be different.
                 // if we're close enough to the y-axis, scale the vertex.
                 // Otherwise, just create the vertex.
-                if (distance < 68) {
+                if (distance < PYRAMID_DRAW_RADIUS) {
                     vertex(
                         p.x * oscillationOffset,
                         p.y * oscillationOffset,
@@ -217,9 +221,11 @@ function showGlobe() {
             let toColor = color(184, 57, 95)
             let c = lerpColor(fromColor, toColor, distance / r)
 
+
+
             noStroke()
             fill(c)
-            if (distance < 68) {
+            if (distance < PYRAMID_DRAW_RADIUS) {
                 beginShape(TRIANGLE_STRIP)
                 for (let p of pyramidPoints) {
                     // we follow the steps we took on the pyramid base quad,
@@ -236,11 +242,19 @@ function showGlobe() {
 
         }
     }
+
+    renderCover()
+    renderWires()
+
+    pop()
+}
+
+function renderCover() {
     push()
-    curveDetail(30)
+    bezierDetail(30)
     rotateX(PI/2)
     fill(184, 57, 95)
-    circle(0, 0, r*2-10)
+    circle(0, 0, r*2-1)
 
     fill(0, 0, 100); noStroke()
 
@@ -254,6 +268,36 @@ function showGlobe() {
     translate(0, 0, 1)
     circle(0, 0, r*2-1)
     pop()
+}
+
+// makes the donuts (donut = torus) on the outside of Adam
+function renderWires() {
+    // iterate through a total of 12 rings, and create an angle out of it
+    // compute the x and y using sine and cosine, respectively
+    // rotate around the z-axis by angle
+
+    push()
+    rotateX(PI/2)
+
+
+    for (let i = 0; i < 12; i++) {
+        let angle = map(i, 0, 12, 0, TAU)
+        let R = r+10
+
+        let x = R * cos(angle)
+        let y = R * sin(angle)
+
+        push()
+        translate(x, y)
+        rotateZ(angle)
+        // rotateX(angle)
+        rotateX(PI/2)
+
+        fill(210, 100, 20)
+        torus(20, 10, 4, 100)
+
+        pop()
+    }
     pop()
 }
 
